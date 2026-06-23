@@ -1,8 +1,18 @@
 import { Router } from 'express';
-import { addTransaction, getHistory, getBalance } from '../controllers/transactionController.js';
+import {
+    createDeposit,
+    createWithdrawal,
+    getBalance,
+    getTransactions,
+    getCurrencies,
+} from '../controllers/transactionController';
 
 const router = Router();
-router.post('/transactions', addTransaction);
-router.get('/transactions', getHistory);
+
+router.post('/deposits', createDeposit);
+router.post('/withdrawals', createWithdrawal);
 router.get('/balance', getBalance);
+router.get('/transactions', getTransactions);
+router.get('/currencies', getCurrencies);
+
 export default router;

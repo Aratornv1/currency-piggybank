@@ -2,9 +2,13 @@
   "name": "currency-piggybank",
   "version": "1.0.0",
   "type": "module",
-  "main": "server.js",
+  "main": "src/server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build:client": "esbuild src/frontend/app.ts --bundle --format=iife --target=es2020 --outfile=public/js/app.js",
+    "watch:client": "esbuild src/frontend/app.ts --bundle --format=iife --target=es2020 --outfile=public/js/app.js --watch",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +27,8 @@
     "@types/node": "^26.0.0",
     "@types/pg": "^8.20.0",
     "@types/sqlite3": "^3.1.11",
+    "esbuild": "^0.28.1",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
 }

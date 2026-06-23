@@ -1,3 +1,6 @@
 node_modules/
 piggybank.db
 .env
+
+# згенерований клієнтський бандл (збирається через npm run build:client)
+public/js/

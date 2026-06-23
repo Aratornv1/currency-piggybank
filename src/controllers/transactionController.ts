@@ -1,30 +1,62 @@
-
 import type { Request, Response } from 'express';
-import { pool } from '../config/db.js';
-import { getRates } from '../services/currencyCache.js';
+import * as service from '../services/transactionService';
 
-export const addTransaction = async (req: Request, res: Response) => {
-    const { amount, currency, date, type } = req.body;
-    try {
-        const sql = `INSERT INTO transactions (amount, currency, date, type) VALUES ($1, $2, $3, $4) RETURNING id`;
-        await pool.query(sql, [Math.round(Number(amount) * 100), currency, date, type]);
-        res.status(201).json({ message: 'Успішно' });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
+const parsePositiveAmount = (v: unknown): number | null => {
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : null;
 };
 
-export const getHistory = async (req: Request, res: Response) => {
-    try {
-        const result = await pool.query(`SELECT * FROM transactions ORDER BY date DESC`);
-        res.json(result.rows.map((row: any) => ({ ...row, amount: row.amount / 100 })));
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
+const fail = (res: Response, err: unknown) => {
+    const e = err as { status?: number; message?: string };
+    res.status(e.status ?? 500).json({ error: e.message ?? 'Внутрішня помилка' });
 };
+
+// Спільний обробник для /deposits і /withdrawals: валідує лише формат запиту.
+const recordHandler =
+    (action: (input: service.RecordInput) => Promise<{ id: number }>) =>
+    async (req: Request, res: Response) => {
+        const amount = parsePositiveAmount(req.body?.amount);
+        const currency = req.body?.currency;
+        const date = req.body?.date;
+
+        if (amount === null || typeof currency !== 'string') {
+            return res.status(400).json({ error: 'Потрібні amount (> 0) та currency' });
+        }
+
+        const input: service.RecordInput = { amount, currency };
+        if (typeof date === 'string') input.date = date;
+
+        try {
+            res.status(201).json(await action(input));
+        } catch (err) {
+            fail(res, err);
+        }
+    };
+
+export const createDeposit = recordHandler(service.deposit);
+export const createWithdrawal = recordHandler(service.withdraw);
 
 export const getBalance = async (req: Request, res: Response) => {
-    const targetCurrency = req.query.target || 'USD';
-    const rates = await getRates(targetCurrency as string);
-    res.json({ targetCurrency, total: 100.00 });
+    const currency = typeof req.query.currency === 'string' ? req.query.currency : 'USD';
+    try {
+        res.json(await service.getBalance(currency));
+    } catch (err) {
+        fail(res, err);
+    }
+};
+
+export const getTransactions = async (_req: Request, res: Response) => {
+    try {
+        res.json(await service.getHistory());
+    } catch (err) {
+        fail(res, err);
+    }
+};
+
+export const getCurrencies = async (_req: Request, res: Response) => {
+    try {
+        res.json(await service.listCurrencies());
+    } catch (err) {
+        fail(res, err);
+    }
 };
