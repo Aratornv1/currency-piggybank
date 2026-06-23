@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мультивалютна Копілка</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-10 font-sans">
+    <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-3xl font-bold text-center text-indigo-600 mb-8">🐷 Мультивалютна Копілка</h1>
+
+        <div class="bg-white rounded-xl shadow p-6 mb-8 text-center">
+            <h2 class="text-gray-500 text-lg font-medium">Загальний баланс станом на зараз</h2>
+            <div class="text-4xl font-extrabold text-gray-800 my-2" id="balance-display">0.00 USD</div>
+            <div class="flex justify-center items-center gap-2 mt-4">
+                <label class="text-sm text-gray-600">Перерахувати в:</label>
+                <select id="target-currency" class="border rounded px-2 py-1 bg-gray-50 font-semibold" onchange="updateBalance()">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="AUD">AUD ($)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white rounded-xl shadow p-6">
+                <h3 class="text-xl font-bold text-gray-700 mb-4">Нова операція</h3>
+                <form id="tx-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-600">Тип</label>
+                        <select id="type" class="w-full border rounded-lg p-2 mt-1">
+                            <option value="deposit">Покласти (+)</option>
+                            <option value="withdrawal">Забрати (-)</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-600">Сума</label>
+                            <input type="number" id="amount" step="0.01" required class="w-full border rounded-lg p-2 mt-1">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600">Валюта</label>
+                            <select id="currency" class="w-full border rounded-lg p-2 mt-1">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="AUD">AUD</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600">Дата</label>
+                        <input type="date" id="date" required class="w-full border rounded-lg p-2 mt-1">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg hover:bg-indigo-700">Виконати</button>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-xl shadow p-6">
+                <h3 class="text-xl font-bold text-gray-700 mb-4">Історія операцій</h3>
+                <div class="overflow-y-auto max-h-64 space-y-2" id="history-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+        async function updateBalance() {
+            const target = document.getElementById('target-currency').value;
+            const res = await fetch(`/api/balance?target=${target}`);
+            const data = await res.json();
+            document.getElementById('balance-display').innerText = `${data.total} ${data.targetCurrency}`;
+        }
+
+        async function updateHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '';
+            const res = await fetch('/api/transactions');
+            const txs = await res.json();
+
+            if(txs.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm">Копілка порожня.</p>';
+                return;
+            }
+
+            txs.forEach(tx => {
+                const isDeposit = tx.type === 'deposit';
+                const item = document.createElement('div');
+                item.className = `flex justify-between items-center p-3 rounded-lg text-sm font-medium ${isDeposit ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`;
+                item.innerHTML = `
+                    <div>
+                        <span class="font-bold">${isDeposit ? '+' : '-'} ${tx.amount} ${tx.currency}</span>
+                        <div class="text-xs text-gray-400">${tx.date}</div>
+                    </div>
+                    <span class="text-xs uppercase px-2 py-1 rounded bg-white border">${isDeposit ? 'Внесок' : 'Зняття'}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        document.getElementById('tx-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                amount: parseFloat(document.getElementById('amount').value),
+                currency: document.getElementById('currency').value,
+                date: document.getElementById('date').value,
+                type: document.getElementById('type').value
+            };
+
+            const res = await fetch('/api/transactions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                document.getElementById('amount').value = '';
+                await updateBalance();
+                await updateHistory();
+            }
+        });
+
+        updateBalance();
+        updateHistory();
+    </script>
+</body>
+</html>
