@@ -51,7 +51,7 @@ async function loadCurrencies(): Promise<void> {
 async function updateBalance(): Promise<void> {
     const currency = targetCurrency.value;
     const { total, currency: cur } = await api<{ total: number; currency: string }>(
-        `/api/balance?currency=${encodeURIComponent(currency)}`
+        `/api/balance?currency=${encodeURIComponent(currency)}`,
     );
     balanceDisplay.innerText = `${total.toFixed(2)} ${cur}`;
 }

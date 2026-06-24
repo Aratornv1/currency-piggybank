@@ -1,28 +1,28 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
-  "compilerOptions": {
-    // Environment Settings
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "target": "esnext",
-    "lib": ["esnext", "dom"],
-    "types": ["node"],
+    // Visit https://aka.ms/tsconfig to read more about this file
+    "compilerOptions": {
+        // Environment Settings
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "target": "esnext",
+        "lib": ["esnext", "dom"],
+        "types": ["node"],
 
-    // Run TypeScript directly via tsx — no .js output
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
+        // Run TypeScript directly via tsx — no .js output
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
 
-    // Stricter Typechecking Options
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+        // Stricter Typechecking Options
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
 
-    // Recommended Options
-    "strict": true,
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
-    "skipLibCheck": true
-  },
-  "include": ["src"]
+        // Recommended Options
+        "strict": true,
+        "verbatimModuleSyntax": true,
+        "isolatedModules": true,
+        "noUncheckedSideEffectImports": true,
+        "moduleDetection": "force",
+        "skipLibCheck": true
+    },
+    "include": ["src"]
 }

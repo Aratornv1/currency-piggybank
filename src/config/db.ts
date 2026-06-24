@@ -17,7 +17,7 @@ export const initDb = async (): Promise<void> => {
     await pool.query(`
         CREATE TABLE IF NOT EXISTS transactions (
             id          SERIAL PRIMARY KEY,
-            amount      BIGINT NOT NULL CHECK (amount >= 0),
+            amount      NUMERIC(14, 2) NOT NULL CHECK (amount >= 0),
             currency    TEXT NOT NULL,
             type        TEXT NOT NULL CHECK (type IN ('deposit', 'withdrawal')),
             date        DATE NOT NULL DEFAULT CURRENT_DATE,
